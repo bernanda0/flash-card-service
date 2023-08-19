@@ -19,7 +19,7 @@ func NewHello(l *log.Logger) *Hello {
 
 func (h *Hello) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	*h.c++
-	h.l.Printf("/hello is hit [%d]", *h.c)
+	h.l.Printf("/hello got hit [%d]", *h.c)
 
 	d, err := io.ReadAll(r.Body)
 	if err != nil {
