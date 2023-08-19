@@ -37,8 +37,8 @@ func main() {
 
 	<-shut // Block until a signal is received
 
-	timeout_ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	stopServer(server, l, &timeout_ctx)
+	timeout_ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	stopServer(server, l, &timeout_ctx, &cancel)
 
 }
 
@@ -50,7 +50,9 @@ func startServer(s *http.Server, l *log.Logger) {
 	}
 }
 
-func stopServer(s *http.Server, l *log.Logger, ctx *context.Context) {
+func stopServer(s *http.Server, l *log.Logger, ctx *context.Context, cancel *context.CancelFunc) {
 	l.Println("💅 Shutting down the server")
 	s.Shutdown(*ctx)
+	c := *cancel
+	c()
 }
