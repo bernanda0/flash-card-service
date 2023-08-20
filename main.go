@@ -1,6 +1,7 @@
 package main
 
 import (
+	"br/simple-service/db"
 	"br/simple-service/handlers"
 	"context"
 	"log"
@@ -13,13 +14,29 @@ import (
 
 func main() {
 	l := log.New(os.Stdout, "SERVER-", log.LstdFlags)
+	ctx := context.Background()
+
+	// CRUD
+	db, queries := db.Instantiate(l)
+	if db == nil || queries == nil {
+		l.Println("Exiting due to database connection error")
+		return
+	}
+	defer db.Close()
 
 	// reference to the handler
 	hello_handler := handlers.NewHello(l)
+	account_handler := handlers.NewAccountHandler(l, queries)
 
 	// handle multiplexer
 	mux := http.NewServeMux()
 	mux.Handle("/hello", hello_handler)
+
+	// account crud
+	mux.HandleFunc("/account/get", account_handler.GetAccount)
+	mux.HandleFunc("/account/all", account_handler.ListAccounts)
+	mux.HandleFunc("/account/create", account_handler.CreateAccount)
+	mux.HandleFunc("/account/delete", account_handler.DeleteAccount)
 
 	server := &http.Server{
 		Addr:        "localhost:4444",
@@ -37,7 +54,7 @@ func main() {
 
 	<-shut // Block until a signal is received
 
-	timeout_ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	timeout_ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	stopServer(server, l, &timeout_ctx, &cancel)
 
 }

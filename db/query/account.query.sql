@@ -14,6 +14,7 @@ INSERT INTO account (
 )
 RETURNING *;
 
--- name: DeleteAccount :exec
+-- name: DeleteAccount :one
 DELETE FROM account
-WHERE account_id = $1;
+WHERE account_id = $1
+RETURNING *;

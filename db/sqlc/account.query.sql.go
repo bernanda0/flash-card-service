@@ -3,7 +3,7 @@
 //   sqlc v1.20.0
 // source: account.query.sql
 
-package db
+package sqlc
 
 import (
 	"context"
@@ -37,14 +37,23 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 	return i, err
 }
 
-const deleteAccount = `-- name: DeleteAccount :exec
+const deleteAccount = `-- name: DeleteAccount :one
 DELETE FROM account
 WHERE account_id = $1
+RETURNING account_id, username, email, password_hash, created_at
 `
 
-func (q *Queries) DeleteAccount(ctx context.Context, accountID int32) error {
-	_, err := q.db.ExecContext(ctx, deleteAccount, accountID)
-	return err
+func (q *Queries) DeleteAccount(ctx context.Context, accountID int32) (Account, error) {
+	row := q.db.QueryRowContext(ctx, deleteAccount, accountID)
+	var i Account
+	err := row.Scan(
+		&i.AccountID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const getAccount = `-- name: GetAccount :one

@@ -3,7 +3,7 @@
 //   sqlc v1.20.0
 // source: card.query.sql
 
-package db
+package sqlc
 
 import (
 	"context"
