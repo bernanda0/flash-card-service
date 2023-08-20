@@ -29,4 +29,10 @@ migrate-up:
 	migrate -path db/migration -database "postgresql://$(USERNAME):bernanda@localhost:5432/$(DB_NAME)?sslmode=disable" -verbose up
 migrate-down:
 	migrate -path db/migration -database "postgresql://$(USERNAME):bernanda@localhost:5432/$(DB_NAME)?sslmode=disable" -verbose down
+migrate-fix:
+	migrate -path db/migration -database "postgresql://$(USERNAME):bernanda@localhost:5432/$(DB_NAME)?sslmode=disable" force VERSION
 
+
+#
+sqlc-gen:
+	sqlc generate
