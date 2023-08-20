@@ -9,6 +9,10 @@ pg-build:
 # make a container and run it
 pg-run:
 	docker run -d --name $(CONTAINER_NAME) -p 5432:5432 $(IMAGE_NAME)
+pg-start:
+	docker start $(CONTAINER_NAME)
+pg-stop:
+	docker stop $(CONTAINER_NAME)
 pg-createuser:
 	docker exec -it $(CONTAINER_NAME) createuser -U postgres $(USERNAME)
 pg-dropuser:

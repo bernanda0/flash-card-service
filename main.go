@@ -34,7 +34,7 @@ func main() {
 
 	// account crud
 	mux.HandleFunc("/account/get", account_handler.GetAccount)
-	mux.HandleFunc("/account/all", account_handler.ListAccounts)
+	mux.HandleFunc("/account/getAll", account_handler.ListAccounts)
 	mux.HandleFunc("/account/create", account_handler.CreateAccount)
 	mux.HandleFunc("/account/delete", account_handler.DeleteAccount)
 

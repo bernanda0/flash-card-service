@@ -3,7 +3,6 @@ package handlers
 import (
 	"br/simple-service/db/sqlc"
 	"br/simple-service/utils"
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
@@ -26,6 +25,11 @@ func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		apiLog(h.l, h.c, &r.RequestURI, err)
 	}()
+
+	err = checkHTTPMethod(w, r.Method, http.MethodPost)
+	if err != nil {
+		return
+	}
 
 	// Parse form data
 	if err := r.ParseForm(); err != nil {
@@ -55,7 +59,7 @@ func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	defer apiLog(h.l, h.c, &r.RequestURI, err)
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(account)
+	toJSON(w, account)
 }
 
 func (h *AccountHandler) GetAccount(w http.ResponseWriter, r *http.Request) {
@@ -64,6 +68,11 @@ func (h *AccountHandler) GetAccount(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		apiLog(h.l, h.c, &r.RequestURI, err)
 	}()
+
+	err = checkHTTPMethod(w, r.Method, http.MethodGet)
+	if err != nil {
+		return
+	}
 
 	accountID, err := strconv.Atoi(r.URL.Query().Get("account_id"))
 	if err != nil {
@@ -77,7 +86,7 @@ func (h *AccountHandler) GetAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(account)
+	toJSON(w, account)
 }
 
 func (h *AccountHandler) ListAccounts(w http.ResponseWriter, r *http.Request) {
@@ -87,6 +96,11 @@ func (h *AccountHandler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 		apiLog(h.l, h.c, &r.RequestURI, err)
 	}()
 
+	err = checkHTTPMethod(w, r.Method, http.MethodGet)
+	if err != nil {
+		return
+	}
+
 	accounts, err := h.q.ListAccounts(r.Context())
 	if err != nil {
 		h.l.Println(err)
@@ -94,7 +108,7 @@ func (h *AccountHandler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(accounts)
+	toJSON(w, accounts)
 }
 
 func (h *AccountHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
@@ -103,18 +117,23 @@ func (h *AccountHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		apiLog(h.l, h.c, &r.RequestURI, err)
 	}()
 
+	err = checkHTTPMethod(w, r.Method, http.MethodDelete)
+	if err != nil {
+		return
+	}
+
 	accountID, err := strconv.Atoi(r.URL.Query().Get("account_id"))
 	if err != nil {
 		http.Error(w, "Invalid account ID", http.StatusBadRequest)
 		return
 	}
 
-	accounts, err := h.q.DeleteAccount(r.Context(), int32(accountID))
+	account, err := h.q.DeleteAccount(r.Context(), int32(accountID))
 	if err != nil {
 		http.Error(w, "Error deleting account", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(accounts)
+	toJSON(w, account)
 }
