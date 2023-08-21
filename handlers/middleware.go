@@ -14,14 +14,14 @@ func (h *Handler) handleRequest(hp HandlerParam) {
 		apiLog(h.l, h.c, &hp.r.RequestURI, err)
 	}()
 
-	err = checkHTTPMethod(hp.w, hp.r.Method, hp.method)
+	checkHTTPMethod(hp.w, hp.r.Method, hp.method)
 	if err != nil {
 		return
 	}
 
 	err = hp.handlerFunc(hp.w, hp.r)
 	if err != nil {
-		http.Error(hp.w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 

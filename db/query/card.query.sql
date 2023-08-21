@@ -16,13 +16,15 @@ INSERT INTO flashcard (
 )
 RETURNING *;
 
--- name: UpdateFlashcard :exec
+-- name: UpdateFlashcard :one
 UPDATE flashcard
 SET question = $1, answer = $2, next_review_date = $3,
     interval = $4, repetitions = $5, easiness_factor = $6,
     updated_at = NOW()
-WHERE flashcard_id = $7;
+WHERE flashcard_id = $7
+RETURNING *;
 
--- name: DeleteFlashcard :exec
+-- name: DeleteFlashcard :one
 DELETE FROM flashcard
-WHERE flashcard_id = $1;
+WHERE flashcard_id = $1
+RETURNING *;

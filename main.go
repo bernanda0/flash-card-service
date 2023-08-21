@@ -2,6 +2,7 @@ package main
 
 import (
 	"br/simple-service/db"
+	"br/simple-service/db/sqlc"
 	"br/simple-service/handlers"
 	"context"
 	"log"
@@ -13,7 +14,7 @@ import (
 )
 
 func main() {
-	l := log.New(os.Stdout, "SERVER-", log.LstdFlags)
+	l := log.New(os.Stdout, "BR-SERVER-", log.LstdFlags)
 	ctx := context.Background()
 
 	// CRUD
@@ -24,23 +25,9 @@ func main() {
 	}
 	defer db.Close()
 
-	// reference to the handler
-	hello_handler := handlers.NewHello(l)
-	account_handler := handlers.NewAccountHandler(l, queries)
-
-	// handle multiplexer
-	mux := http.NewServeMux()
-	mux.Handle("/hello", hello_handler)
-
-	// account crud
-	mux.HandleFunc("/account/get", account_handler.GetAccountH)
-	mux.HandleFunc("/account/getAll", account_handler.ListAccountsH)
-	mux.HandleFunc("/account/create", account_handler.CreateAccountH)
-	mux.HandleFunc("/account/delete", account_handler.DeleteAccountH)
-
 	server := &http.Server{
 		Addr:        "localhost:4444",
-		Handler:     mux,
+		Handler:     defineMultiplexer(l, queries),
 		IdleTimeout: 30 * time.Second,
 		ReadTimeout: time.Second,
 	}
@@ -72,4 +59,38 @@ func stopServer(s *http.Server, l *log.Logger, ctx *context.Context, cancel *con
 	s.Shutdown(*ctx)
 	c := *cancel
 	c()
+}
+
+func defineMultiplexer(l *log.Logger, q *sqlc.Queries) *http.ServeMux {
+	// reference to the handler
+	hello_handler := handlers.NewHello(l)
+	account_handler := handlers.NewAccountHandler(l, q)
+	deck_handler := handlers.NewDeckHandler(l, q)
+	card_handler := handlers.NewCardHandler(l, q)
+
+	// handle multiplexer
+	mux := http.NewServeMux()
+	mux.Handle("/hello", hello_handler)
+
+	// account crud
+	mux.HandleFunc("/account/get", account_handler.GetAccountH)
+	mux.HandleFunc("/account/getAll", account_handler.ListAccountsH)
+	mux.HandleFunc("/account/create", account_handler.CreateAccountH)
+	mux.HandleFunc("/account/delete", account_handler.DeleteAccountH)
+
+	// deck crud
+	mux.HandleFunc("/deck/get", deck_handler.GetDeckH)
+	mux.HandleFunc("/deck/create", deck_handler.CreateDeckH)
+	mux.HandleFunc("/deck/delete", deck_handler.DeleteDeckH)
+	mux.HandleFunc("/deck/update", deck_handler.UpdateDeckTitleH)
+	mux.HandleFunc("/deck/getAll", deck_handler.ListDecksByAccountH)
+
+	// card crud
+	mux.HandleFunc("/card/get", card_handler.GetCardH)
+	mux.HandleFunc("/card/create", card_handler.CreateCardH)
+	mux.HandleFunc("/card/delete", card_handler.DeleteCardH)
+	mux.HandleFunc("/card/update", card_handler.UpdateCardH)
+	mux.HandleFunc("/card/getAll", card_handler.ListCardsH)
+
+	return mux
 }

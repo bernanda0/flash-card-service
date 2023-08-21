@@ -57,14 +57,29 @@ func (q *Queries) CreateFlashcard(ctx context.Context, arg CreateFlashcardParams
 	return i, err
 }
 
-const deleteFlashcard = `-- name: DeleteFlashcard :exec
+const deleteFlashcard = `-- name: DeleteFlashcard :one
 DELETE FROM flashcard
 WHERE flashcard_id = $1
+RETURNING flashcard_id, deck_id, question, answer, next_review_date, interval, repetitions, easiness_factor, created_at, updated_at, is_archived
 `
 
-func (q *Queries) DeleteFlashcard(ctx context.Context, flashcardID int32) error {
-	_, err := q.db.ExecContext(ctx, deleteFlashcard, flashcardID)
-	return err
+func (q *Queries) DeleteFlashcard(ctx context.Context, flashcardID int32) (Flashcard, error) {
+	row := q.db.QueryRowContext(ctx, deleteFlashcard, flashcardID)
+	var i Flashcard
+	err := row.Scan(
+		&i.FlashcardID,
+		&i.DeckID,
+		&i.Question,
+		&i.Answer,
+		&i.NextReviewDate,
+		&i.Interval,
+		&i.Repetitions,
+		&i.EasinessFactor,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IsArchived,
+	)
+	return i, err
 }
 
 const getFlashcard = `-- name: GetFlashcard :one
@@ -132,12 +147,13 @@ func (q *Queries) ListFlashcardsByDeck(ctx context.Context, deckID int32) ([]Fla
 	return items, nil
 }
 
-const updateFlashcard = `-- name: UpdateFlashcard :exec
+const updateFlashcard = `-- name: UpdateFlashcard :one
 UPDATE flashcard
 SET question = $1, answer = $2, next_review_date = $3,
     interval = $4, repetitions = $5, easiness_factor = $6,
     updated_at = NOW()
 WHERE flashcard_id = $7
+RETURNING flashcard_id, deck_id, question, answer, next_review_date, interval, repetitions, easiness_factor, created_at, updated_at, is_archived
 `
 
 type UpdateFlashcardParams struct {
@@ -150,8 +166,8 @@ type UpdateFlashcardParams struct {
 	FlashcardID    int32           `json:"flashcard_id"`
 }
 
-func (q *Queries) UpdateFlashcard(ctx context.Context, arg UpdateFlashcardParams) error {
-	_, err := q.db.ExecContext(ctx, updateFlashcard,
+func (q *Queries) UpdateFlashcard(ctx context.Context, arg UpdateFlashcardParams) (Flashcard, error) {
+	row := q.db.QueryRowContext(ctx, updateFlashcard,
 		arg.Question,
 		arg.Answer,
 		arg.NextReviewDate,
@@ -160,5 +176,19 @@ func (q *Queries) UpdateFlashcard(ctx context.Context, arg UpdateFlashcardParams
 		arg.EasinessFactor,
 		arg.FlashcardID,
 	)
-	return err
+	var i Flashcard
+	err := row.Scan(
+		&i.FlashcardID,
+		&i.DeckID,
+		&i.Question,
+		&i.Answer,
+		&i.NextReviewDate,
+		&i.Interval,
+		&i.Repetitions,
+		&i.EasinessFactor,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IsArchived,
+	)
+	return i, err
 }
