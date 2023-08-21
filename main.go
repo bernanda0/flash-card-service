@@ -33,10 +33,10 @@ func main() {
 	mux.Handle("/hello", hello_handler)
 
 	// account crud
-	mux.HandleFunc("/account/get", account_handler.GetAccount)
-	mux.HandleFunc("/account/getAll", account_handler.ListAccounts)
-	mux.HandleFunc("/account/create", account_handler.CreateAccount)
-	mux.HandleFunc("/account/delete", account_handler.DeleteAccount)
+	mux.HandleFunc("/account/get", account_handler.GetAccountH)
+	mux.HandleFunc("/account/getAll", account_handler.ListAccountsH)
+	mux.HandleFunc("/account/create", account_handler.CreateAccountH)
+	mux.HandleFunc("/account/delete", account_handler.DeleteAccountH)
 
 	server := &http.Server{
 		Addr:        "localhost:4444",

@@ -7,7 +7,6 @@ package sqlc
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createDeck = `-- name: CreateDeck :one
@@ -20,8 +19,8 @@ RETURNING deck_id, account_id, title, created_at
 `
 
 type CreateDeckParams struct {
-	AccountID sql.NullInt32 `json:"account_id"`
-	Title     string        `json:"title"`
+	AccountID int32  `json:"account_id"`
+	Title     string `json:"title"`
 }
 
 func (q *Queries) CreateDeck(ctx context.Context, arg CreateDeckParams) (Deck, error) {
@@ -36,14 +35,22 @@ func (q *Queries) CreateDeck(ctx context.Context, arg CreateDeckParams) (Deck, e
 	return i, err
 }
 
-const deleteDeck = `-- name: DeleteDeck :exec
+const deleteDeck = `-- name: DeleteDeck :one
 DELETE FROM deck
 WHERE deck_id = $1
+RETURNING deck_id, account_id, title, created_at
 `
 
-func (q *Queries) DeleteDeck(ctx context.Context, deckID int32) error {
-	_, err := q.db.ExecContext(ctx, deleteDeck, deckID)
-	return err
+func (q *Queries) DeleteDeck(ctx context.Context, deckID int32) (Deck, error) {
+	row := q.db.QueryRowContext(ctx, deleteDeck, deckID)
+	var i Deck
+	err := row.Scan(
+		&i.DeckID,
+		&i.AccountID,
+		&i.Title,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const getDeck = `-- name: GetDeck :one
@@ -69,7 +76,7 @@ WHERE account_id = $1
 ORDER BY title
 `
 
-func (q *Queries) ListDecksByAccount(ctx context.Context, accountID sql.NullInt32) ([]Deck, error) {
+func (q *Queries) ListDecksByAccount(ctx context.Context, accountID int32) ([]Deck, error) {
 	rows, err := q.db.QueryContext(ctx, listDecksByAccount, accountID)
 	if err != nil {
 		return nil, err
@@ -97,9 +104,10 @@ func (q *Queries) ListDecksByAccount(ctx context.Context, accountID sql.NullInt3
 	return items, nil
 }
 
-const updateDeckTitle = `-- name: UpdateDeckTitle :exec
+const updateDeckTitle = `-- name: UpdateDeckTitle :one
 UPDATE deck SET title = $1
 WHERE deck_id = $2
+RETURNING deck_id, account_id, title, created_at
 `
 
 type UpdateDeckTitleParams struct {
@@ -107,7 +115,14 @@ type UpdateDeckTitleParams struct {
 	DeckID int32  `json:"deck_id"`
 }
 
-func (q *Queries) UpdateDeckTitle(ctx context.Context, arg UpdateDeckTitleParams) error {
-	_, err := q.db.ExecContext(ctx, updateDeckTitle, arg.Title, arg.DeckID)
-	return err
+func (q *Queries) UpdateDeckTitle(ctx context.Context, arg UpdateDeckTitleParams) (Deck, error) {
+	row := q.db.QueryRowContext(ctx, updateDeckTitle, arg.Title, arg.DeckID)
+	var i Deck
+	err := row.Scan(
+		&i.DeckID,
+		&i.AccountID,
+		&i.Title,
+		&i.CreatedAt,
+	)
+	return i, err
 }

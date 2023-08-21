@@ -8,14 +8,14 @@ CREATE TABLE account (
 
 CREATE TABLE deck (
     deck_id SERIAL PRIMARY KEY,
-    account_id INT REFERENCES account(account_id) ON DELETE CASCADE,
+    account_id INT REFERENCES account(account_id) ON DELETE CASCADE NOT NULL,
     title VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE flashcard (
     flashcard_id SERIAL PRIMARY KEY,
-    deck_id INT REFERENCES deck(deck_id) ON DELETE CASCADE,
+    deck_id INT REFERENCES deck(deck_id) ON DELETE CASCADE NOT NULL,
     question TEXT NOT NULL,
     answer TEXT NOT NULL,
     next_review_date TIMESTAMP,

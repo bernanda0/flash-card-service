@@ -8,33 +8,37 @@ import (
 	"strconv"
 )
 
-type AccountHandler struct {
-	l *log.Logger
-	q *sqlc.Queries
-	c *uint
-}
-
 func NewAccountHandler(l *log.Logger, q *sqlc.Queries) *AccountHandler {
 	var c uint = 0
-	return &AccountHandler{l, q, &c}
+	return &AccountHandler{&Handler{l, q, &c}}
 }
 
-func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
-	*h.c++
-	var err error = nil
-	defer func() {
-		apiLog(h.l, h.c, &r.RequestURI, err)
-	}()
+func (ah *AccountHandler) CreateAccountH(w http.ResponseWriter, r *http.Request) {
+	hp := HandlerParam{w, r, http.MethodPost, ah.createAccount}
+	ah.h.handleRequest(hp)
+}
 
-	err = checkHTTPMethod(w, r.Method, http.MethodPost)
-	if err != nil {
-		return
-	}
+func (ah *AccountHandler) GetAccountH(w http.ResponseWriter, r *http.Request) {
+	hp := HandlerParam{w, r, http.MethodGet, ah.getAccount}
+	ah.h.handleRequest(hp)
+}
+func (ah *AccountHandler) ListAccountsH(w http.ResponseWriter, r *http.Request) {
+	hp := HandlerParam{w, r, http.MethodGet, ah.listAccounts}
+	ah.h.handleRequest(hp)
+}
 
+func (ah *AccountHandler) DeleteAccountH(w http.ResponseWriter, r *http.Request) {
+	hp := HandlerParam{w, r, http.MethodDelete, ah.deleteAccount}
+	ah.h.handleRequest(hp)
+}
+
+// the implementation
+
+func (ah *AccountHandler) createAccount(w http.ResponseWriter, r *http.Request) error {
 	// Parse form data
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Error parsing form data", http.StatusBadRequest)
-		return
+		return err
 	}
 
 	// Retrieve form values
@@ -50,90 +54,59 @@ func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		PasswordHash: hashedPassword, // Don't forget to hash the password
 	}
 
-	account, err := h.q.CreateAccount(r.Context(), accountParams)
+	account, err := ah.h.q.CreateAccount(r.Context(), accountParams)
 	if err != nil {
 		http.Error(w, "Error creating account", http.StatusInternalServerError)
-		return
+		return err
 	}
-
-	defer apiLog(h.l, h.c, &r.RequestURI, err)
 
 	w.WriteHeader(http.StatusCreated)
 	toJSON(w, account)
+	return nil
 }
 
-func (h *AccountHandler) GetAccount(w http.ResponseWriter, r *http.Request) {
-	*h.c++
-	var err error = nil
-	defer func() {
-		apiLog(h.l, h.c, &r.RequestURI, err)
-	}()
-
-	err = checkHTTPMethod(w, r.Method, http.MethodGet)
-	if err != nil {
-		return
-	}
-
+func (ah *AccountHandler) getAccount(w http.ResponseWriter, r *http.Request) error {
 	accountID, err := strconv.Atoi(r.URL.Query().Get("account_id"))
 	if err != nil {
 		http.Error(w, "Invalid account ID", http.StatusBadRequest)
-		return
+		return err
 	}
 
-	account, err := h.q.GetAccount(r.Context(), int32(accountID))
+	account, err := ah.h.q.GetAccount(r.Context(), int32(accountID))
 	if err != nil {
 		http.Error(w, "Account not found", http.StatusNotFound)
-		return
+		return err
 	}
 
 	toJSON(w, account)
+	return nil
 }
 
-func (h *AccountHandler) ListAccounts(w http.ResponseWriter, r *http.Request) {
-	*h.c++
-	var err error = nil
-	defer func() {
-		apiLog(h.l, h.c, &r.RequestURI, err)
-	}()
-
-	err = checkHTTPMethod(w, r.Method, http.MethodGet)
+func (ah *AccountHandler) listAccounts(w http.ResponseWriter, r *http.Request) error {
+	accounts, err := ah.h.q.ListAccounts(r.Context())
 	if err != nil {
-		return
-	}
-
-	accounts, err := h.q.ListAccounts(r.Context())
-	if err != nil {
-		h.l.Println(err)
 		http.Error(w, "Error listing accounts", http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	toJSON(w, accounts)
+	return nil
 }
 
-func (h *AccountHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
-	var err error = nil
-	defer func() {
-		apiLog(h.l, h.c, &r.RequestURI, err)
-	}()
-
-	err = checkHTTPMethod(w, r.Method, http.MethodDelete)
-	if err != nil {
-		return
-	}
-
+func (ah *AccountHandler) deleteAccount(w http.ResponseWriter, r *http.Request) error {
 	accountID, err := strconv.Atoi(r.URL.Query().Get("account_id"))
 	if err != nil {
 		http.Error(w, "Invalid account ID", http.StatusBadRequest)
-		return
+		return err
 	}
 
-	account, err := h.q.DeleteAccount(r.Context(), int32(accountID))
+	account, err := ah.h.q.DeleteAccount(r.Context(), int32(accountID))
 	if err != nil {
 		http.Error(w, "Error deleting account", http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	w.WriteHeader(http.StatusOK)
 	toJSON(w, account)
+	return nil
 }

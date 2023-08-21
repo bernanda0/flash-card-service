@@ -21,7 +21,7 @@ RETURNING flashcard_id, deck_id, question, answer, next_review_date, interval, r
 `
 
 type CreateFlashcardParams struct {
-	DeckID         sql.NullInt32   `json:"deck_id"`
+	DeckID         int32           `json:"deck_id"`
 	Question       string          `json:"question"`
 	Answer         string          `json:"answer"`
 	NextReviewDate sql.NullTime    `json:"next_review_date"`
@@ -97,7 +97,7 @@ WHERE deck_id = $1
 ORDER BY created_at
 `
 
-func (q *Queries) ListFlashcardsByDeck(ctx context.Context, deckID sql.NullInt32) ([]Flashcard, error) {
+func (q *Queries) ListFlashcardsByDeck(ctx context.Context, deckID int32) ([]Flashcard, error) {
 	rows, err := q.db.QueryContext(ctx, listFlashcardsByDeck, deckID)
 	if err != nil {
 		return nil, err

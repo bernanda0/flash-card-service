@@ -17,15 +17,15 @@ type Account struct {
 }
 
 type Deck struct {
-	DeckID    int32         `json:"deck_id"`
-	AccountID sql.NullInt32 `json:"account_id"`
-	Title     string        `json:"title"`
-	CreatedAt sql.NullTime  `json:"created_at"`
+	DeckID    int32        `json:"deck_id"`
+	AccountID int32        `json:"account_id"`
+	Title     string       `json:"title"`
+	CreatedAt sql.NullTime `json:"created_at"`
 }
 
 type Flashcard struct {
 	FlashcardID    int32           `json:"flashcard_id"`
-	DeckID         sql.NullInt32   `json:"deck_id"`
+	DeckID         int32           `json:"deck_id"`
 	Question       string          `json:"question"`
 	Answer         string          `json:"answer"`
 	NextReviewDate sql.NullTime    `json:"next_review_date"`

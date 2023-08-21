@@ -12,7 +12,7 @@ func Instantiate(l *log.Logger) (*sql.DB, *sqlc.Queries) {
 	connStr := "user=bernanda password=bernanda dbname=sr-db sslmode=disable"
 	db, err1 := sql.Open("postgres", connStr)
 	if err1 != nil {
-		l.Println("Error connecting to DB ", err1)
+		l.Println("Error creating DB connection", err1)
 		return nil, nil
 	}
 

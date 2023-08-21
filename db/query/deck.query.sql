@@ -15,10 +15,12 @@ INSERT INTO deck (
 )
 RETURNING *;
 
--- name: UpdateDeckTitle :exec
+-- name: UpdateDeckTitle :one
 UPDATE deck SET title = $1
-WHERE deck_id = $2;
+WHERE deck_id = $2
+RETURNING *;
 
--- name: DeleteDeck :exec
+-- name: DeleteDeck :one
 DELETE FROM deck
-WHERE deck_id = $1;
+WHERE deck_id = $1
+RETURNING *;
