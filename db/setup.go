@@ -8,9 +8,13 @@ import (
 	_ "github.com/lib/pq" // Import the PostgreSQL driver package
 )
 
+const (
+	DB_DRIVER            = "postgres"
+	DB_CONNECTION_STRING = "postgresql://bernanda:bernanda@localhost:5432/sr-db?sslmode=disable"
+)
+
 func Instantiate(l *log.Logger) (*sql.DB, *sqlc.Queries) {
-	connStr := "user=bernanda password=bernanda dbname=sr-db sslmode=disable"
-	db, err1 := sql.Open("postgres", connStr)
+	db, err1 := sql.Open(DB_DRIVER, DB_CONNECTION_STRING)
 	if err1 != nil {
 		l.Println("Error creating DB connection", err1)
 		return nil, nil
