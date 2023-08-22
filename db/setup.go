@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"log"
 
-	_ "github.com/lib/pq" // Import the PostgreSQL driver package
+	_ "github.com/lib/pq"
 )
 
 const (

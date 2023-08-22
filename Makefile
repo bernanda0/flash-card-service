@@ -46,3 +46,7 @@ migrate-fix:
 #
 sqlc-gen:
 	sqlc generate
+
+# UT
+test:
+	go test -v -cover ./...
