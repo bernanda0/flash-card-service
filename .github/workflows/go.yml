@@ -44,7 +44,7 @@ jobs:
         which migrate
 
     - name: Run Migrations Test
-      run: migrate-up-test
+      run: make migrate-up-test
 
     - name: Test
       run: make test
