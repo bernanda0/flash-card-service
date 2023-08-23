@@ -26,7 +26,7 @@ func main() {
 	defer db.Close()
 
 	server := &http.Server{
-		Addr:        "localhost:4444",
+		Addr:        ":" + "4444",
 		Handler:     defineMultiplexer(l, queries),
 		IdleTimeout: 30 * time.Second,
 		ReadTimeout: time.Second,
@@ -42,12 +42,15 @@ func main() {
 	<-shut // Block until a signal is received
 
 	timeout_ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	stopServer(server, l, &timeout_ctx, &cancel)
 
 }
 
 func startServer(s *http.Server, l *log.Logger) {
-	l.Println("🔥 Server is running on", s.Addr)
+	l.Println("🔥 Server is starting on", s.Addr)
+
 	err := s.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		l.Fatalln("Server is failed due to", err)
