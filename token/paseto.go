@@ -1,26 +1,32 @@
 package token
 
 import (
+	"errors"
 	"time"
 
+	"github.com/aead/chacha20poly1305"
 	"github.com/o1egl/paseto"
 )
 
 type PasetoMaker struct {
-	secretKey []byte
+	pV2 *paseto.V2
+	key []byte
 }
 
-func NewPasetoMaker(secretKey string) (Maker, error) {
-	return &PasetoMaker{secretKey: []byte(secretKey)}, nil
+func NewPasetoMaker(key string) (Maker, error) {
+	if len(key) != chacha20poly1305.KeySize {
+		return nil, errors.New("invalid secret key length")
+	}
+	p := paseto.NewV2()
+	return &PasetoMaker{p, []byte(key)}, nil
 }
 
 // VerifyToken(token string) (*Payload, error)
 
 func (p *PasetoMaker) GenerateToken(account_id uint, username string, duration time.Duration) (string, error) {
 	payload := NewPayload(account_id, username, duration)
-	v2 := paseto.NewV2()
 
-	token, err := v2.Encrypt(p.secretKey, payload, nil)
+	token, err := p.pV2.Encrypt(p.key, payload, nil)
 	if err != nil {
 		return "", err
 	}
@@ -30,9 +36,13 @@ func (p *PasetoMaker) GenerateToken(account_id uint, username string, duration t
 
 func (p *PasetoMaker) VerifyToken(tokenString string) (*Payload, error) {
 	var payload Payload
-	v2 := paseto.NewV2()
 
-	err := v2.Decrypt(tokenString, p.secretKey, &payload, nil)
+	err := p.pV2.Decrypt(tokenString, p.key, &payload, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	err = payload.TimeValid()
 	if err != nil {
 		return nil, err
 	}

@@ -55,3 +55,10 @@ func NewPayload(account_id uint, username string, duration time.Duration) *Paylo
 		ExpiredAt: time.Now().Add(duration),
 	}
 }
+
+func (p *Payload) TimeValid() error {
+	if time.Now().After(p.ExpiredAt) {
+		return ErrExpiredToken
+	}
+	return nil
+}
