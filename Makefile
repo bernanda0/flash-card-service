@@ -50,3 +50,5 @@ sqlc-gen:
 # UT
 test:
 	go test -v -cover ./...
+
+	

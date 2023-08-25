@@ -14,7 +14,7 @@ func (h *Handler) handleRequest(hp HandlerParam) {
 		apiLog(h.l, h.c, &hp.r.RequestURI, err)
 	}()
 
-	checkHTTPMethod(hp.w, hp.r.Method, hp.method)
+	err = checkHTTPMethod(hp.w, hp.r.Method, hp.method)
 	if err != nil {
 		return
 	}

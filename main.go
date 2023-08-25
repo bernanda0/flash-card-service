@@ -4,6 +4,7 @@ import (
 	"br/simple-service/db"
 	"br/simple-service/db/sqlc"
 	"br/simple-service/handlers"
+	"br/simple-service/token"
 	"context"
 	"log"
 	"net/http"
@@ -11,6 +12,10 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+)
+
+const (
+	PASETO_KEY = "23572357235723572357235723572357"
 )
 
 func main() {
@@ -70,10 +75,18 @@ func defineMultiplexer(l *log.Logger, q *sqlc.Queries) *http.ServeMux {
 	account_handler := handlers.NewAccountHandler(l, q)
 	deck_handler := handlers.NewDeckHandler(l, q)
 	card_handler := handlers.NewCardHandler(l, q)
+	token, err := token.NewPasetoMaker(PASETO_KEY)
+	if err != nil {
+		log.Fatal("Failed creating Paseto token")
+	}
+	auth_handler := handlers.NewAuthHandler(l, q, &token)
 
 	// handle multiplexer
 	mux := http.NewServeMux()
 	mux.Handle("/hello", hello_handler)
+
+	// auth
+	mux.HandleFunc("/login", auth_handler.Login)
 
 	// account crud
 	mux.HandleFunc("/account/get", account_handler.GetAccountH)
