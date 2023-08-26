@@ -11,6 +11,7 @@ type Handler struct {
 	l *log.Logger
 	q *sqlc.Queries
 	c *uint
+	u *AuthedUser
 }
 
 type AuthHandler struct {
@@ -35,6 +36,11 @@ type HandlerParam struct {
 	r           *http.Request
 	method      string
 	handlerFunc func(http.ResponseWriter, *http.Request) error
+}
+
+type AuthedUser struct {
+	UserID   uint   `json:"user_id"`
+	Username string `json:"username"`
 }
 
 type LoginUserResponse struct {

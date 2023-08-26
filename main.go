@@ -12,15 +12,18 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-)
 
-const (
-	PASETO_KEY = "23572357235723572357235723572357"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	l := log.New(os.Stdout, "BR-SERVER-", log.LstdFlags)
 	ctx := context.Background()
+	// load env
+	err := godotenv.Load("local.env")
+	if err != nil {
+		l.Fatalf("Error reding the .env %s", err)
+	}
 
 	// CRUD
 	db, queries := db.Instantiate(l)
@@ -31,7 +34,7 @@ func main() {
 	defer db.Close()
 
 	server := &http.Server{
-		Addr:        ":" + "4444",
+		Addr:        ":" + os.Getenv("PORT"),
 		Handler:     defineMultiplexer(l, queries),
 		IdleTimeout: 30 * time.Second,
 		ReadTimeout: time.Second,
@@ -70,23 +73,25 @@ func stopServer(s *http.Server, l *log.Logger, ctx *context.Context, cancel *con
 }
 
 func defineMultiplexer(l *log.Logger, q *sqlc.Queries) *http.ServeMux {
+	var u handlers.AuthedUser
+
 	// reference to the handler
 	hello_handler := handlers.NewHello(l)
-	account_handler := handlers.NewAccountHandler(l, q)
-	deck_handler := handlers.NewDeckHandler(l, q)
-	card_handler := handlers.NewCardHandler(l, q)
-	token, err := token.NewPasetoMaker(PASETO_KEY)
+	account_handler := handlers.NewAccountHandler(l, q, &u)
+	deck_handler := handlers.NewDeckHandler(l, q, &u)
+	card_handler := handlers.NewCardHandler(l, q, &u)
+	token, err := token.NewPasetoMaker(os.Getenv("PASETO_KEY"))
 	if err != nil {
 		log.Fatal("Failed creating Paseto token")
 	}
-	auth_handler := handlers.NewAuthHandler(l, q, &token)
+	auth_handler := handlers.NewAuthHandler(l, q, &u, &token)
 
 	// handle multiplexer
 	mux := http.NewServeMux()
 	mux.Handle("/hello", hello_handler)
 
 	// auth
-	mux.HandleFunc("/login", auth_handler.Login)
+	mux.HandleFunc("/auth/login", auth_handler.Login)
 
 	// account crud
 	mux.HandleFunc("/account/get", account_handler.GetAccountH)

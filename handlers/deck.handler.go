@@ -2,39 +2,40 @@ package handlers
 
 import (
 	"br/simple-service/db/sqlc"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
 )
 
-func NewDeckHandler(l *log.Logger, q *sqlc.Queries) *DeckHandler {
+func NewDeckHandler(l *log.Logger, q *sqlc.Queries, u *AuthedUser) *DeckHandler {
 	var c uint = 0
-	return &DeckHandler{&Handler{l, q, &c}}
+	return &DeckHandler{&Handler{l, q, &c, u}}
 }
 
 func (dh *DeckHandler) CreateDeckH(w http.ResponseWriter, r *http.Request) {
 	hp := HandlerParam{w, r, http.MethodPost, dh.createDeck}
-	dh.h.handleRequest(hp)
+	dh.h.handleRequest(hp, dh.h.u)
 }
 
 func (dh *DeckHandler) DeleteDeckH(w http.ResponseWriter, r *http.Request) {
 	hp := HandlerParam{w, r, http.MethodDelete, dh.deleteDeck}
-	dh.h.handleRequest(hp)
+	dh.h.handleRequest(hp, dh.h.u)
 }
 
 func (dh *DeckHandler) GetDeckH(w http.ResponseWriter, r *http.Request) {
 	hp := HandlerParam{w, r, http.MethodGet, dh.getDeck}
-	dh.h.handleRequest(hp)
+	dh.h.handleRequest(hp, dh.h.u)
 }
 
 func (dh *DeckHandler) ListDecksByAccountH(w http.ResponseWriter, r *http.Request) {
 	hp := HandlerParam{w, r, http.MethodGet, dh.listDecksByAccount}
-	dh.h.handleRequest(hp)
+	dh.h.handleRequest(hp, dh.h.u)
 }
 
 func (dh *DeckHandler) UpdateDeckTitleH(w http.ResponseWriter, r *http.Request) {
 	hp := HandlerParam{w, r, http.MethodPut, dh.updateDeckTitle}
-	dh.h.handleRequest(hp)
+	dh.h.handleRequest(hp, dh.h.u)
 }
 
 // implementation
@@ -52,6 +53,11 @@ func (dh *DeckHandler) createDeck(w http.ResponseWriter, r *http.Request) error 
 		return err
 	}
 	title := r.FormValue("title")
+
+	if accountID != int(dh.h.u.UserID) {
+		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		return errors.New("unauthorized")
+	}
 
 	deckParam := sqlc.CreateDeckParams{
 		AccountID: int32(accountID),
@@ -76,6 +82,17 @@ func (dh *DeckHandler) deleteDeck(w http.ResponseWriter, r *http.Request) error 
 		return err
 	}
 
+	ownerID, err := dh.h.q.GetOwner(r.Context(), int32(deckID))
+	if err != nil {
+		http.Error(w, "No owner of the deck ID", http.StatusBadRequest)
+		return err
+	}
+
+	if ownerID != int32(dh.h.u.UserID) {
+		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		return errors.New("unauthorized")
+	}
+
 	deck, err := dh.h.q.DeleteDeck(r.Context(), int32(deckID))
 	if err != nil {
 		http.Error(w, "Error deleting deck", http.StatusInternalServerError)
@@ -94,6 +111,17 @@ func (dh *DeckHandler) getDeck(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	ownerID, err := dh.h.q.GetOwner(r.Context(), int32(deckID))
+	if err != nil {
+		http.Error(w, "No owner of the deck ID", http.StatusBadRequest)
+		return err
+	}
+
+	if ownerID != int32(dh.h.u.UserID) {
+		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		return errors.New("unauthorized")
+	}
+
 	deck, err := dh.h.q.GetDeck(r.Context(), int32(deckID))
 	if err != nil {
 		http.Error(w, "Deck not found", http.StatusInternalServerError)
@@ -110,6 +138,11 @@ func (dh *DeckHandler) listDecksByAccount(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		http.Error(w, "Invalid account ID", http.StatusBadRequest)
 		return err
+	}
+
+	if int32(accountID) != int32(dh.h.u.UserID) {
+		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		return errors.New("unauthorized")
 	}
 
 	decks, err := dh.h.q.ListDecksByAccount(r.Context(), int32(accountID))
@@ -134,6 +167,18 @@ func (dh *DeckHandler) updateDeckTitle(w http.ResponseWriter, r *http.Request) e
 		http.Error(w, "Invalid deck ID", http.StatusBadRequest)
 		return err
 	}
+
+	ownerID, err := dh.h.q.GetOwner(r.Context(), int32(deckID))
+	if err != nil {
+		http.Error(w, "No owner of the deck ID", http.StatusBadRequest)
+		return err
+	}
+
+	if ownerID != int32(dh.h.u.UserID) {
+		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		return errors.New("unauthorized")
+	}
+
 	title := r.FormValue("title")
 
 	updateDeckParam := sqlc.UpdateDeckTitleParams{

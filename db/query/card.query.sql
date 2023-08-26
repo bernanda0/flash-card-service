@@ -28,3 +28,7 @@ RETURNING *;
 DELETE FROM flashcard
 WHERE flashcard_id = $1
 RETURNING *;
+
+-- name: GetDeckID :one
+SELECT deck_id FROM flashcard
+WHERE flashcard_id = $1 LIMIT 1;

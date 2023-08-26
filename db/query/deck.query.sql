@@ -24,3 +24,7 @@ RETURNING *;
 DELETE FROM deck
 WHERE deck_id = $1
 RETURNING *;
+
+-- name: GetOwner :one
+SELECT account_id FROM deck
+WHERE deck_id = $1;

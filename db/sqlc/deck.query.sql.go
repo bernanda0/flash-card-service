@@ -70,6 +70,18 @@ func (q *Queries) GetDeck(ctx context.Context, deckID int32) (Deck, error) {
 	return i, err
 }
 
+const getOwner = `-- name: GetOwner :one
+SELECT account_id FROM deck
+WHERE deck_id = $1
+`
+
+func (q *Queries) GetOwner(ctx context.Context, deckID int32) (int32, error) {
+	row := q.db.QueryRowContext(ctx, getOwner, deckID)
+	var account_id int32
+	err := row.Scan(&account_id)
+	return account_id, err
+}
+
 const listDecksByAccount = `-- name: ListDecksByAccount :many
 SELECT deck_id, account_id, title, created_at FROM deck
 WHERE account_id = $1

@@ -3,33 +3,34 @@ package handlers
 import (
 	"br/simple-service/db/sqlc"
 	"br/simple-service/utils"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
 )
 
-func NewAccountHandler(l *log.Logger, q *sqlc.Queries) *AccountHandler {
+func NewAccountHandler(l *log.Logger, q *sqlc.Queries, u *AuthedUser) *AccountHandler {
 	var c uint = 0
-	return &AccountHandler{&Handler{l, q, &c}}
+	return &AccountHandler{&Handler{l, q, &c, u}}
 }
 
 func (ah *AccountHandler) CreateAccountH(w http.ResponseWriter, r *http.Request) {
 	hp := HandlerParam{w, r, http.MethodPost, ah.createAccount}
-	ah.h.handleRequest(hp)
+	ah.h.handleRequest(hp, ah.h.u)
 }
 
 func (ah *AccountHandler) GetAccountH(w http.ResponseWriter, r *http.Request) {
 	hp := HandlerParam{w, r, http.MethodGet, ah.getAccount}
-	ah.h.handleRequest(hp)
+	ah.h.handleRequest(hp, ah.h.u)
 }
 func (ah *AccountHandler) ListAccountsH(w http.ResponseWriter, r *http.Request) {
 	hp := HandlerParam{w, r, http.MethodGet, ah.listAccounts}
-	ah.h.handleRequest(hp)
+	ah.h.handleRequest(hp, ah.h.u)
 }
 
 func (ah *AccountHandler) DeleteAccountH(w http.ResponseWriter, r *http.Request) {
 	hp := HandlerParam{w, r, http.MethodDelete, ah.deleteAccount}
-	ah.h.handleRequest(hp)
+	ah.h.handleRequest(hp, ah.h.u)
 }
 
 // the implementation
@@ -72,6 +73,11 @@ func (ah *AccountHandler) getAccount(w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
+	if accountID != int(ah.h.u.UserID) {
+		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		return errors.New("unauthorized")
+	}
+
 	account, err := ah.h.q.GetAccount(r.Context(), int32(accountID))
 	if err != nil {
 		http.Error(w, "Account not found", http.StatusNotFound)
@@ -89,6 +95,12 @@ func (ah *AccountHandler) listAccounts(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
+	// TO DO : only admin can use this query
+	// if r.Header.Get("admin") == "false" {
+	// 	http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+	// 	return errors.New("unauthorized")
+	// }
+
 	toJSON(w, accounts)
 	return nil
 }
@@ -98,6 +110,11 @@ func (ah *AccountHandler) deleteAccount(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		http.Error(w, "Invalid account ID", http.StatusBadRequest)
 		return err
+	}
+
+	if accountID != int(ah.h.u.UserID) {
+		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		return errors.New("unauthorized")
 	}
 
 	account, err := ah.h.q.DeleteAccount(r.Context(), int32(accountID))

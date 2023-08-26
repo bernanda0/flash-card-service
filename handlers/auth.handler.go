@@ -14,14 +14,14 @@ const (
 	DURATION = 15
 )
 
-func NewAuthHandler(l *log.Logger, q *sqlc.Queries, t *token.Maker) *AuthHandler {
+func NewAuthHandler(l *log.Logger, q *sqlc.Queries, u *AuthedUser, t *token.Maker) *AuthHandler {
 	var c uint = 0
-	return &AuthHandler{&Handler{l, q, &c}, *t}
+	return &AuthHandler{&Handler{l, q, &c, u}, *t}
 }
 
 func (auth_h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	hp := HandlerParam{w, r, http.MethodPost, auth_h.login}
-	auth_h.h.handleRequest(hp)
+	auth_h.h.handleRequest(hp, nil)
 }
 
 func (auth_h *AuthHandler) login(w http.ResponseWriter, r *http.Request) error {

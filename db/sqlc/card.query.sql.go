@@ -82,6 +82,18 @@ func (q *Queries) DeleteFlashcard(ctx context.Context, flashcardID int32) (Flash
 	return i, err
 }
 
+const getDeckID = `-- name: GetDeckID :one
+SELECT deck_id FROM flashcard
+WHERE flashcard_id = $1 LIMIT 1
+`
+
+func (q *Queries) GetDeckID(ctx context.Context, flashcardID int32) (int32, error) {
+	row := q.db.QueryRowContext(ctx, getDeckID, flashcardID)
+	var deck_id int32
+	err := row.Scan(&deck_id)
+	return deck_id, err
+}
+
 const getFlashcard = `-- name: GetFlashcard :one
 SELECT flashcard_id, deck_id, question, answer, next_review_date, interval, repetitions, easiness_factor, created_at, updated_at, is_archived FROM flashcard
 WHERE flashcard_id = $1 LIMIT 1
