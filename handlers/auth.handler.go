@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	DURATION = 15
+	ACCESS_TOKEN_DURATION  = 5
+	REFRESH_TOKEN_DURATION = 12
 )
 
 func NewAuthHandler(l *log.Logger, q *sqlc.Queries, u *AuthedUser, t *token.Maker) *AuthHandler {
@@ -54,16 +55,42 @@ func (auth_h *AuthHandler) login(w http.ResponseWriter, r *http.Request) error {
 		return errors.New("account not found, register first")
 	}
 
-	duration := time.Minute * DURATION
-	token, err := auth_h.t.GenerateToken(uint(user.AccountID), user.Username, duration)
+	access_token_duration := time.Minute * ACCESS_TOKEN_DURATION
+	a_token, a_payload, err := auth_h.t.GenerateToken(uint(user.AccountID), user.Username, access_token_duration)
 	if err != nil {
-		return errors.New("failed generate token for user")
+		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		return errors.New("failed generate access token for user")
+	}
+
+	refresh_token_duration := time.Hour * REFRESH_TOKEN_DURATION
+	r_token, r_payload, err := auth_h.t.GenerateToken(uint(user.AccountID), user.Username, refresh_token_duration)
+	if err != nil {
+		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		return errors.New("failed generate refresh token for user")
+	}
+
+	sessionParams := sqlc.CreateSessionParams{
+		ID:           r_payload.ID,
+		AccountID:    int32(r_payload.AccountID),
+		Username:     r_payload.Username,
+		RefreshToken: r_token,
+		ExpiresAt:    r_payload.ExpiredAt,
+	}
+
+	session, err := auth_h.h.q.CreateSession(r.Context(), sessionParams)
+	if err != nil {
+		http.Error(w, "Failed to create session", http.StatusInternalServerError)
+		return errors.New("failed to create a session")
 	}
 
 	res := LoginUserResponse{
-		AccessToken: token,
-		UserID:      uint(user.AccountID),
-		Username:    user.Username,
+		SessionID:      session.ID,
+		AccessToken:    a_token,
+		AccessTokenEx:  a_payload.ExpiredAt,
+		RefreshToken:   r_token,
+		RefreshTokenEx: r_payload.ExpiredAt,
+		UserID:         uint(user.AccountID),
+		Username:       user.Username,
 	}
 
 	w.WriteHeader(http.StatusCreated)

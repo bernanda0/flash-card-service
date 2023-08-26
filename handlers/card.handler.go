@@ -63,7 +63,7 @@ func (ch *CardHandler) createCard(w http.ResponseWriter, r *http.Request) error 
 	}
 
 	if ownerID != int32(ch.h.u.UserID) {
-		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return errors.New("unauthorized")
 	}
 
@@ -108,7 +108,7 @@ func (ch *CardHandler) getCard(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if ownerID != int32(ch.h.u.UserID) {
-		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return errors.New("unauthorized")
 	}
 
@@ -130,7 +130,7 @@ func (ch *CardHandler) listCards(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if ownerID != int32(ch.h.u.UserID) {
-		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return errors.New("unauthorized")
 	}
 
@@ -171,7 +171,7 @@ func (ch *CardHandler) updateCard(w http.ResponseWriter, r *http.Request) error 
 	}
 
 	if ownerID != int32(ch.h.u.UserID) {
-		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return errors.New("unauthorized")
 	}
 
@@ -215,7 +215,7 @@ func (ch *CardHandler) deleteCard(w http.ResponseWriter, r *http.Request) error 
 	}
 
 	if ownerID != int32(ch.h.u.UserID) {
-		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return errors.New("unauthorized")
 	}
 

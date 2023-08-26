@@ -5,6 +5,9 @@ import (
 	"br/simple-service/token"
 	"log"
 	"net/http"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type Handler struct {
@@ -44,7 +47,20 @@ type AuthedUser struct {
 }
 
 type LoginUserResponse struct {
-	AccessToken string `json:"access_token"`
-	UserID      uint   `json:"user_id"`
-	Username    string `json:"username"`
+	SessionID      uuid.UUID `json:"session_id"`
+	AccessToken    string    `json:"access_token"`
+	AccessTokenEx  time.Time `json:"access_token_expire"`
+	RefreshToken   string    `json:"refresh_token"`
+	RefreshTokenEx time.Time `json:"refresh_token_expire"`
+	UserID         uint      `json:"user_id"`
+	Username       string    `json:"username"`
+}
+
+type renewAccessTokenRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
+type renewAccessTokenResponse struct {
+	AccessToken          string    `json:"access_token"`
+	AccessTokenExpiresAt time.Time `json:"access_token_expire"`
 }

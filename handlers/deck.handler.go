@@ -55,7 +55,7 @@ func (dh *DeckHandler) createDeck(w http.ResponseWriter, r *http.Request) error 
 	title := r.FormValue("title")
 
 	if accountID != int(dh.h.u.UserID) {
-		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return errors.New("unauthorized")
 	}
 
@@ -89,7 +89,7 @@ func (dh *DeckHandler) deleteDeck(w http.ResponseWriter, r *http.Request) error 
 	}
 
 	if ownerID != int32(dh.h.u.UserID) {
-		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return errors.New("unauthorized")
 	}
 
@@ -118,7 +118,7 @@ func (dh *DeckHandler) getDeck(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if ownerID != int32(dh.h.u.UserID) {
-		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return errors.New("unauthorized")
 	}
 
@@ -141,7 +141,7 @@ func (dh *DeckHandler) listDecksByAccount(w http.ResponseWriter, r *http.Request
 	}
 
 	if int32(accountID) != int32(dh.h.u.UserID) {
-		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return errors.New("unauthorized")
 	}
 
@@ -175,7 +175,7 @@ func (dh *DeckHandler) updateDeckTitle(w http.ResponseWriter, r *http.Request) e
 	}
 
 	if ownerID != int32(dh.h.u.UserID) {
-		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return errors.New("unauthorized")
 	}
 

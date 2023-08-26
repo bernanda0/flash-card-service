@@ -85,6 +85,7 @@ func defineMultiplexer(l *log.Logger, q *sqlc.Queries) *http.ServeMux {
 		log.Fatal("Failed creating Paseto token")
 	}
 	auth_handler := handlers.NewAuthHandler(l, q, &u, &token)
+	token_handler := handlers.NewTokenHandler(l, q, &u, &token)
 
 	// handle multiplexer
 	mux := http.NewServeMux()
@@ -92,6 +93,7 @@ func defineMultiplexer(l *log.Logger, q *sqlc.Queries) *http.ServeMux {
 
 	// auth
 	mux.HandleFunc("/auth/login", auth_handler.Login)
+	mux.HandleFunc("/auth/renewToken", token_handler.RenewToken)
 
 	// account crud
 	mux.HandleFunc("/account/get", account_handler.GetAccountH)

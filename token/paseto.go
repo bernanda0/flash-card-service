@@ -23,15 +23,15 @@ func NewPasetoMaker(key string) (Maker, error) {
 
 // VerifyToken(token string) (*Payload, error)
 
-func (p *PasetoMaker) GenerateToken(account_id uint, username string, duration time.Duration) (string, error) {
+func (p *PasetoMaker) GenerateToken(account_id uint, username string, duration time.Duration) (string, *Payload, error) {
 	payload := NewPayload(account_id, username, duration)
 
 	token, err := p.pV2.Encrypt(p.key, payload, nil)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	return token, nil
+	return token, payload, nil
 }
 
 func (p *PasetoMaker) VerifyToken(tokenString string) (*Payload, error) {

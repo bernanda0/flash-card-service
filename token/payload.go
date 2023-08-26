@@ -4,10 +4,12 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 // struct of payload
 type Payload struct {
+	ID        uuid.UUID `json:"id"`
 	AccountID uint      `json:"account_id"`
 	Username  string    `json:"username"`
 	IssuedAt  time.Time `json:"issued_at"`
@@ -48,7 +50,13 @@ func (p *Payload) GetSubject() (string, error) {
 }
 
 func NewPayload(account_id uint, username string, duration time.Duration) *Payload {
+	token_id, err := uuid.NewRandom()
+	if err != nil {
+		return nil
+	}
+
 	return &Payload{
+		ID:        token_id,
 		AccountID: account_id,
 		Username:  username,
 		IssuedAt:  time.Now(),

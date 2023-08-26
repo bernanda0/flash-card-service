@@ -74,7 +74,7 @@ func (ah *AccountHandler) getAccount(w http.ResponseWriter, r *http.Request) err
 	}
 
 	if accountID != int(ah.h.u.UserID) {
-		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return errors.New("unauthorized")
 	}
 
@@ -113,7 +113,7 @@ func (ah *AccountHandler) deleteAccount(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if accountID != int(ah.h.u.UserID) {
-		http.Error(w, "unauthorized", http.StatusNonAuthoritativeInfo)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return errors.New("unauthorized")
 	}
 

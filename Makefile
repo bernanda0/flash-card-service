@@ -33,6 +33,9 @@ pg-psql-test:
 migrate-init:
 	migrate create -ext sql -dir db/migration -seq db_scheme
 
+migrate-init-session:
+	migrate create -ext sql -dir db/migration -seq session
+
 # add the password first inside psql, e.g. ALTER USER yourusername WITH PASSWORD yourpassword
 migrate-up:
 	migrate -path db/migration -database "postgresql://$(USERNAME):bernanda@localhost:5432/$(DB_NAME)?sslmode=disable" -verbose up

@@ -22,12 +22,12 @@ func TestJwtMaker(t *testing.T) {
 	issued_at := time.Now()
 	expired_at := time.Now().Add(duration)
 
-	token, err := maker.GenerateToken(uint(account_id), username, duration)
+	token, payload, err := maker.GenerateToken(uint(account_id), username, duration)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 	fmt.Println(token)
 
-	payload, err := maker.VerifyToken(token)
+	payload, err = maker.VerifyToken(token)
 	require.NoError(t, err)
 	require.NotEmpty(t, payload)
 	fmt.Println(payload)
@@ -48,12 +48,12 @@ func TestTokenExpired(t *testing.T) {
 	// minus indicate that the token is expired
 	duration := -time.Minute
 
-	token, err := maker.GenerateToken(uint(account_id), username, duration)
+	token, payload, err := maker.GenerateToken(uint(account_id), username, duration)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 	fmt.Println(token)
 
-	payload, err := maker.VerifyToken(token)
+	payload, err = maker.VerifyToken(token)
 	require.Error(t, err)
 	require.Nil(t, payload)
 	fmt.Println(err)

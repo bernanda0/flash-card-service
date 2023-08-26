@@ -6,6 +6,9 @@ package sqlc
 
 import (
 	"database/sql"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type Account struct {
@@ -35,4 +38,14 @@ type Flashcard struct {
 	CreatedAt      sql.NullTime    `json:"created_at"`
 	UpdatedAt      sql.NullTime    `json:"updated_at"`
 	IsArchived     sql.NullBool    `json:"is_archived"`
+}
+
+type Session struct {
+	ID           uuid.UUID `json:"id"`
+	AccountID    int32     `json:"account_id"`
+	Username     string    `json:"username"`
+	RefreshToken string    `json:"refresh_token"`
+	IsBlocked    bool      `json:"is_blocked"`
+	ExpiresAt    time.Time `json:"expires_at"`
+	CreatedAt    time.Time `json:"created_at"`
 }
