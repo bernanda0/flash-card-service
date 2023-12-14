@@ -16,6 +16,8 @@ func EmailIsValid(email string) bool {
 func PasswordIsValid(password string) bool {
 	// Define your password validation criteria using regular expressions
 	// This pattern might need to be adjusted based on your requirements
-	passwordPattern := `^[a-zA-Z0-9!@#$%^&*()_+{}[\]:;<>,.?~=-]{8,}$`
+	passwordPattern := `^[a-zA-Z0-9!@#$%^&*()_+{}[\]:;<>,.?~=-]{6,}$`
 	return regexp.MustCompile(passwordPattern).MatchString(password)
 }
+
+// TODO check uniique username

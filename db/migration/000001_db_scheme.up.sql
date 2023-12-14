@@ -30,3 +30,4 @@ CREATE TABLE IF NOT EXISTS flashcard (
 CREATE INDEX IF NOT EXISTS idx_deck_account_id ON deck (account_id);
 CREATE INDEX IF NOT EXISTS idx_flashcard_deck_id ON flashcard (deck_id);
 CREATE INDEX IF NOT EXISTS idx_flashcard_next_review_date ON flashcard (next_review_date);
+-- TO DO INDEX OF USERNAME

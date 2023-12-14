@@ -93,6 +93,7 @@ func defineMultiplexer(l *log.Logger, q *sqlc.Queries) *http.ServeMux {
 
 	// auth
 	mux.HandleFunc("/auth/login", auth_handler.Login)
+	mux.HandleFunc("/auth/signup", auth_handler.Signup)
 	mux.HandleFunc("/auth/renewToken", token_handler.RenewToken)
 
 	// account crud

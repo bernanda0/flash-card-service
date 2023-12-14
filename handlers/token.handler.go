@@ -38,7 +38,7 @@ func (auth_h *AuthHandler) renewToken(w http.ResponseWriter, r *http.Request) er
 	session, err := auth_h.h.q.GetSession(r.Context(), refresh_payload.ID)
 	if err != nil {
 		http.Error(w, "Cannot get Session", http.StatusInternalServerError)
-		return errors.New("invalid refresh token")
+		return errors.New("Cannot get Session")
 	}
 
 	if session.IsBlocked {

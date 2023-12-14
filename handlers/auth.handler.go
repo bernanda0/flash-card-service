@@ -25,6 +25,11 @@ func (auth_h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	auth_h.h.handleRequest(hp, nil)
 }
 
+func (auth_h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
+	hp := HandlerParam{w, r, http.MethodPost, auth_h.signup}
+	auth_h.h.handleRequest(hp, nil)
+}
+
 func (auth_h *AuthHandler) login(w http.ResponseWriter, r *http.Request) error {
 	// Parse form data
 	if err := r.ParseForm(); err != nil {
@@ -95,5 +100,48 @@ func (auth_h *AuthHandler) login(w http.ResponseWriter, r *http.Request) error {
 
 	w.WriteHeader(http.StatusCreated)
 	toJSON(w, res)
+	return nil
+}
+
+func (auth_h *AuthHandler) signup(w http.ResponseWriter, r *http.Request) error {
+	// Parse form data
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing form data", http.StatusBadRequest)
+		return err
+	}
+
+	// Retrieve form values
+	username := r.FormValue("username")
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+	hashedPassword, _ := utils.HashPassword(password)
+
+	ok := utils.EmailIsValid(email)
+	if !ok {
+		http.Error(w, "Invalid Email", http.StatusInternalServerError)
+		return errors.New("invalid email")
+	}
+
+	ok = utils.PasswordIsValid(password)
+	if !ok {
+		http.Error(w, "Invalid Password", http.StatusInternalServerError)
+		return errors.New("invalid password")
+	}
+
+	// Create accountParams using retrieved form values
+	accountParams := sqlc.CreateAccountParams{
+		Username:     username,
+		Email:        email,
+		PasswordHash: hashedPassword, // Don't forget to hash the password
+	}
+
+	account, err := auth_h.h.q.CreateAccount(r.Context(), accountParams)
+	if err != nil {
+		http.Error(w, "Error creating account", http.StatusInternalServerError)
+		return err
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	toJSON(w, account)
 	return nil
 }
